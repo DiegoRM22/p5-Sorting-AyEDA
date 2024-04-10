@@ -8,6 +8,7 @@ template <class Key>
 class SortMethod {
  public:
   SortMethod(const StaticSequence<Key>& sequence) : sequence_(sequence) {}
+  SortMethod() = default;
   virtual void Sort() = 0;
   StaticSequence<Key> GetSequence() const { return sequence_; }
 
