@@ -10,9 +10,9 @@ class RadixSort : public SortMethod<Key> {
  public:
   RadixSort(const StaticSequence<Key>& sequence) : SortMethod<Key>(sequence) {}
   void Sort() override {
-    std::cout << "RadixSort" << std::endl;
-    int max = this->sequence_[0];
+    Key max = this->sequence_[0];
     for (int i = 1; i < this->sequence_.GetSize(); i++) {
+      this->comparisons_++;
       if (this->sequence_[i] > max) {
         max = this->sequence_[i];
       }
@@ -35,6 +35,7 @@ class RadixSort : public SortMethod<Key> {
     for (int i = this->sequence_.GetSize() - 1; i >= 0; i--) {
       output.Set(count[(this->sequence_[i] / exp) % 10] - 1, this->sequence_[i]);
       count[(this->sequence_[i] / exp) % 10]--;
+      this->swaps_++;
     }
     for (int i = 0; i < this->sequence_.GetSize(); i++) {
       this->sequence_.Set(i, output[i]);

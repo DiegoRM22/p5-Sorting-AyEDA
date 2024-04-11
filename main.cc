@@ -12,8 +12,10 @@
 #include "sort-method/radix-sort/radix-sort.h"
 #include "sort-method/shell-sort/shell-sort.h"
 #include "instance-generator/instance-generator.h"
+#include "NIF/nif.h"
 
-void printInstance(int* data, int dataSize) {
+template <class Key>
+void printInstance(Key* data, int dataSize) {
   for (int i = 0; i < dataSize; i++) {
     std::cout << data[i] << " ";
   }
@@ -78,107 +80,69 @@ void SetArguments(std::string arguments, int& size, std::string& method, std::st
   }
 }
 
+void CalculatesAverages(SortMethod<int>* sortMethod, std::vector<int*> instances, int size) {
+  int comparisons = 0;
+  int swaps = 0;
+  for (int i = 0; i < 10; i++) {
+    StaticSequence<int> sequence(size, instances[i]);
+    sortMethod->SetSequence(sequence);
+    sortMethod->Sort();
+    comparisons += sortMethod->GetComparisons();
+    swaps += sortMethod->GetSwaps();
+  }
+  std::cout << comparisons / 10 << "            " << swaps / 10 << std::endl;
+}
+
 
 int main(int argc, char** argv) {
   // Start the seed.
   srand(time(NULL));
-
-  // Read arguments
-  int size = 0;
-  std::string method = "";
-  std::string inputMode = "";
-  std::string fileName = "";
-  char trace = 'N';
-  if (argc > 1) {
-    std::string arguments = getArgs(argc, argv);
-    std::cout << "Arguments: " << arguments << std::endl;
-    SetArguments(arguments, size, method, inputMode, fileName, trace);
+  // Vamos a generar las instancias de tamaños 10, 100 y 1000.
+  // Vamos a generar 10 instancias de cada tamaño.
+  std::vector<int*> size10Instances;
+  InstanceGenerator<int> generator;
+  for (int i = 0; i < 10; i++) {
+    size10Instances.push_back(generator.GenerateRandomInstance(10, 10));
   }
 
-  std::cout << "Size: " << size << std::endl;
-  std::cout << "Method: " << method << std::endl;
-  std::cout << "Input mode: " << inputMode << std::endl;
-  std::cout << "File name: " << fileName << std::endl;
-  std::cout << "Trace: " << trace << std::endl;
-
-  int* data;
-  const int max = 100;
-  StaticSequence<int> sequence(size);
-  // starts the data
-  if (inputMode == "random") {
-    InstanceGenerator<int> generator;
-    data = generator.GenerateRandomInstance(size, 100);
-    sequence = StaticSequence<int>(size, data);
-  } else if (inputMode == "file") {
-    // read the file
-    std::ifstream file(fileName);
-    std::string line;
-    getline(file, line);
-  } else if (inputMode == "manual") {
-    std::string input;
-    std::vector<int> temporalSequence;
-    for (int i = 0; i < size; i++) {
-      std::cin >> input;
-      sequence.Set(i, std::stoi(input));
-    }
+  std::vector<int*> size100Instances;
+  for (int i = 0; i < 10; i++) {
+    size100Instances.push_back(generator.GenerateRandomInstance(100, 10));
   }
-
-  printInstance(sequence.GetData(), size);
-  std::cout << std::endl;
-
-  switch (std::stoi(method)) {
-    case 1: {
-      SelectSort<int> selectSort(sequence);
-      selectSort.Sort();
-      printInstance(selectSort.GetSequence().GetData(), size);
-      break;
-    }
-    case 2: {
-      QuickSort<int> quickSort(sequence);
-      quickSort.Sort();
-      printInstance(quickSort.GetSequence().GetData(), size);
-      break;
-    }
-    case 3: {
-      HeapSort<int> heapSort(sequence);
-      heapSort.Sort();
-      printInstance(heapSort.GetSequence().GetData(), size);
-      break;
-    }
-    case 4: {
-      RadixSort<int> radixSort(sequence);
-      radixSort.Sort();
-      printInstance(radixSort.GetSequence().GetData(), size);
-      break;
-    }
-    case 5: {
-      ShellSort<int> shellSort(sequence);
-      shellSort.Sort();
-      printInstance(shellSort.GetSequence().GetData(), size);
-      break;
-    }
+  
+  std::vector<int*> size1000Instances;
+  for (int i = 0; i < 10; i++) {
+    size1000Instances.push_back(generator.GenerateRandomInstance(1000, 10));
   }
+  int sizes[3] = {10, 100, 1000};
+  std::vector<int*> instances[3] = {size10Instances, size100Instances, size1000Instances};
+  for (int i = 0; i < 3; i++) {
+    std::cout << "Tamaño: " << sizes[i] << " Comparaciones" << "  " << "Intercambios" << std::endl; 
+    int comparaciones = 0;
+    int intercambios = 0;
+    StaticSequence<int> sequence(sizes[i], instances[i][0]);
+    std::cout << "SelectSort:   ";
+    CalculatesAverages(new SelectSort<int>(sequence), instances[i], sizes[i]);
+    std::cout << "QuickSort:    ";
+    CalculatesAverages(new QuickSort<int>(sequence), instances[i], sizes[i]);
+    std::cout << "HeapSort:     ";
+    CalculatesAverages(new HeapSort<int>(sequence), instances[i], sizes[i]);
+    std::cout << "RadixSort:    ";
+    CalculatesAverages(new RadixSort<int>(sequence), instances[i], sizes[i]);
+    std::cout << "ShellSort:    ";
+    CalculatesAverages(new ShellSort<int>(sequence), instances[i], sizes[i]);
+    std::cout << "--------------------------------------------" << std::endl;
+  }
+    
 
-  std::cout << std::endl;
 
-  // const int dataSize = 5;
-  // const int maxValue = 100;
-  // InstanceGenerator<int> generator;
-  // int* data = generator.GenerateRandomInstance(dataSize, maxValue);
-  // printInstance(data, dataSize);
-  // std::cout << std::endl;
-  // std::vector<SortMethod<int>*> sort_methods = {
-  //   new SelectSort<int>(StaticSequence<int>(5, data)),
-  //   new QuickSort<int>(StaticSequence<int>(5, data)),
-  //   new HeapSort<int>(StaticSequence<int>(5, data)),
-  //   new RadixSort<int>(StaticSequence<int>(5, data)),
-  //   new ShellSort<int>(StaticSequence<int>(5, data))
-  // };
-  // for (auto sort_method : sort_methods) {
-  //   sort_method->Sort();
-  //   StaticSequence<int> sorted_sequence = sort_method->GetSequence();
-  //   printInstance(sorted_sequence.GetData(), dataSize);
-  //   std::cout << std::endl;
-  // }
+  
+
+
+
+
+
+
+
   return 0;
 }

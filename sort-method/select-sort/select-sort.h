@@ -10,10 +10,10 @@ class SelectSort : public SortMethod<Key> {
  public:
   SelectSort(const StaticSequence<Key>& sequence) : SortMethod<Key>(sequence) {}
   void Sort() override {
-    std::cout << "SelectSort" << std::endl;
     for (int i = 0; i < this->sequence_.GetSize(); i++) {
       int min = i;
       for (int j = i + 1; j < this->sequence_.GetSize(); j++) {
+        this->comparisons_++;
         if (this->sequence_[j] < this->sequence_[min]) {
           min = j;
         }
@@ -22,6 +22,7 @@ class SelectSort : public SortMethod<Key> {
         Key temp = this->sequence_[i];
         this->sequence_.Set(i, this->sequence_[min]);
         this->sequence_.Set(min, temp);
+        this->swaps_++;
       }
     }
   }

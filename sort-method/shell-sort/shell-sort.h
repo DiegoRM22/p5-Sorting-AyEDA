@@ -10,7 +10,6 @@ class ShellSort : public SortMethod<Key> {
  public:
   ShellSort(const StaticSequence<Key>& sequence) : SortMethod<Key>(sequence) {}
   void Sort() override {
-    std::cout << "ShellSort" << std::endl;
     int delta = this->sequence_.GetSize();
     while (delta > 1){
       delta = delta / 2;
@@ -24,10 +23,12 @@ class ShellSort : public SortMethod<Key> {
       Key x = this->sequence_[i];
       int j = i;
       while (j >= delta && x < this->sequence_[j - delta]) {
+        this->comparisons_++;
         this->sequence_.Set(j, this->sequence_[j - delta]);
         j = j - delta;
       }
       this->sequence_.Set(j, x);
+      this->swaps_++;
     }
   }
 };
